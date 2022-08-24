@@ -1,7 +1,7 @@
 package com.core.admob.inter
 
 interface InterShowListener {
-   fun onAdClose(failToShowAd:Boolean)
-   fun onAdFailShow()
-   fun onAdShow()
+   fun onAdInterClose(failToShowAd:Boolean)
+   fun onAdInterFailShow()
+   fun onAdInterShow()
 }

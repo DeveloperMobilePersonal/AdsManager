@@ -1,40 +1,51 @@
 package video.photo.instagram.downloader.adsmanager
 
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
-import com.core.admob.inter.InterLoadListener
-import com.core.admob.inter.InterManager
-import com.core.admob.inter.InterShowListener
+import androidx.appcompat.widget.AppCompatButton
+import com.core.admob.appopen.AdAppOpenApplication
+import com.core.admob.appopen.AdAppOpenApplicationListener
+import com.core.admob.appopen.AppOpenManager
+import com.core.admob.appopen.AppOpenManagerListener
+import com.core.admob.inter.InterManagerListener
 
-class MainActivity : AppCompatActivity(), InterLoadListener {
+class MainActivity : AppCompatActivity(), AdAppOpenApplicationListener {
+
+    private val progressBar by lazy {
+        findViewById<ProgressBar>(R.id.progress)
+    }
+
+    private val button by lazy {
+        findViewById<AppCompatButton>(R.id.appCompatButton)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val interManager = InterManager(this, "")
-        interManager.setDebugAd(true)
-        interManager.setLoadListenerAd(this)
-        interManager.setAutoLoadAd(true)
-        interManager.loadAd()
+        val appOpenManager = AppOpenManager(this, "")
+        appOpenManager.setDebugAd(true)
+        val adAppOpenApplication = AdAppOpenApplication(appOpenManager, "")
+        adAppOpenApplication.registerLifecycleOwner()
+        adAppOpenApplication.addListener(this)
+        button.setOnClickListener {
+            progressBar.visibility = View.VISIBLE
+            appOpenManager.loadAd()
+        }
     }
 
-    override fun onAdLoaded(interManager: InterManager) {
-        interManager.showAd(this, object : InterShowListener {
-            override fun onAdClose(failToShowAd: Boolean) {
-
-            }
-
-            override fun onAdFailShow() {
-
-            }
-
-            override fun onAdShow() {
-
-            }
-
-        })
+    override fun onAdStartAppOpen(appOpenManager: AppOpenManager) {
+        appOpenManager.showAd(this)
     }
 
-    override fun onAdLoadFail(message: String) {
+    override fun onAdShowAppOpen() {
 
     }
+
+    override fun onAdCloseAppOpen() {
+
+    }
+
 }

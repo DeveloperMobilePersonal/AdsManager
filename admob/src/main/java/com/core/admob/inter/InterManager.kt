@@ -2,7 +2,6 @@ package com.core.admob.inter
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -23,7 +22,7 @@ class InterManager(private val context: Context, private val adId: String) {
     }
 
     private var mInterstitialAd: InterstitialAd? = null
-    private var interLoadListener: InterLoadListener? = null
+    private var interLoadListener: InterManagerListener? = null
     private var timeAdLoaded = 0L
     private var isShowing = false
     private var isError = false
@@ -40,11 +39,11 @@ class InterManager(private val context: Context, private val adId: String) {
         timeOutAd = hours * 60 * 60 * 1000
     }
 
-    fun setAutoLoadAd(autoLoadAd: Boolean) {
+    fun setAutoReLoadAd(autoLoadAd: Boolean) {
         isAutoLoadAd = autoLoadAd
     }
 
-    fun setLoadListenerAd(listener: InterLoadListener?) {
+    fun setLoadListenerAd(listener: InterManagerListener?) {
         this.interLoadListener = listener
     }
 
@@ -62,7 +61,10 @@ class InterManager(private val context: Context, private val adId: String) {
 
     fun loadAd() {
         if (startLoadAd) return
-        if (isLoadAd() && isReadyAd()) return
+        if (isLoadAd() && isReadyAd()) {
+            interLoadListener?.onAdInterLoaded(this@InterManager)
+            return
+        }
         clear()
         startLoadAd = true
         InterstitialAd.load(
@@ -75,31 +77,37 @@ class InterManager(private val context: Context, private val adId: String) {
     fun showAd(activity: Activity, listener: InterShowListener? = null) {
         if (isShowing) return
         if (isError()) {
-            listener?.onAdClose(true)
+            if (isAutoLoadAd) loadAd()
+            listener?.onAdInterClose(true)
+            interLoadListener?.onAdInterClose(true)
             return
         }
-        Log.i("TinhNv", "showAd: ${isLoadAd()} --- ${isReadyAd()}")
         if (isLoadAd() && isReadyAd()) {
             mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     clear()
                     if (isAutoLoadAd) loadAd()
-                    listener?.onAdClose(false)
+                    listener?.onAdInterClose(false)
+                    interLoadListener?.onAdInterClose(false)
                 }
 
                 override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                     isShowing = false
-                    listener?.onAdFailShow()
+                    listener?.onAdInterFailShow()
+                    interLoadListener?.onAdInterFailShow()
                 }
 
                 override fun onAdShowedFullScreenContent() {
                     isShowing = true
-                    listener?.onAdShow()
+                    listener?.onAdInterShow()
+                    interLoadListener?.onAdInterShow()
                 }
             }
             mInterstitialAd?.show(activity)
         } else {
-            listener?.onAdClose(true)
+            if (isAutoLoadAd) loadAd()
+            listener?.onAdInterClose(true)
+            interLoadListener?.onAdInterClose(true)
         }
     }
 
@@ -118,7 +126,7 @@ class InterManager(private val context: Context, private val adId: String) {
             isError = false
             startLoadAd = false
             timeAdLoaded = System.currentTimeMillis()
-            interLoadListener?.onAdLoaded(this@InterManager)
+            interLoadListener?.onAdInterLoaded(this@InterManager)
         }
 
         override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -126,7 +134,7 @@ class InterManager(private val context: Context, private val adId: String) {
             isShowing = false
             isError = true
             startLoadAd = false
-            interLoadListener?.onAdLoadFail(p0.message)
+            interLoadListener?.onAdInterLoadFail(p0.message)
         }
     }
 }
