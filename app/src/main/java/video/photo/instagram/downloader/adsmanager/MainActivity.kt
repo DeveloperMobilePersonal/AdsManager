@@ -1,7 +1,6 @@
 package video.photo.instagram.downloader.adsmanager
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
@@ -9,8 +8,7 @@ import androidx.appcompat.widget.AppCompatButton
 import com.core.admob.appopen.AdAppOpenApplication
 import com.core.admob.appopen.AdAppOpenApplicationListener
 import com.core.admob.appopen.AppOpenManager
-import com.core.admob.appopen.AppOpenManagerListener
-import com.core.admob.inter.InterManagerListener
+import com.core.admob.appopen.LockAd
 
 class MainActivity : AppCompatActivity(), AdAppOpenApplicationListener {
 
@@ -31,8 +29,7 @@ class MainActivity : AppCompatActivity(), AdAppOpenApplicationListener {
         adAppOpenApplication.registerLifecycleOwner()
         adAppOpenApplication.addListener(this)
         button.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
-            appOpenManager.loadAd()
+            LockAd.lockAd = true
         }
     }
 
